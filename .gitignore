@@ -9,12 +9,31 @@ venv/
 env/
 ENV/
 
+# Large Datasets & CSV Files (>100MB)
+*.csv
+!results/*.csv
+fmcg_sales_*.csv
+data/
+data/bronze/
+data/silver/
+data/gold/
+data/gold_1M/
+data/gold_3M/
+data/gold_5M/
+data/raw/
+
 # Spark & Execution Logs
 spark-warehouse/
 metastore_db/
 derby.log
 *.log
 catboost_info/
+
+# Model Checkpoints & Serialized Binaries
+models/*.joblib
+models/*.bin
+models/*.model
+!models/.gitkeep
 
 # IDEs & System Files
 .DS_Store
