@@ -1,0 +1,6 @@
+FROM apache/spark:3.5.1-python3
+
+USER root
+RUN pip3 install --no-cache-dir --target /usr/local/lib/python3.8/dist-packages numpy pandas pyarrow scikit-learn xgboost lightgbm catboost
+ENV PYTHONPATH="/usr/local/lib/python3.8/dist-packages:${PYTHONPATH}"
+USER spark

@@ -1,0 +1,80 @@
+services:
+  spark-master:
+    build:
+      context: .
+      dockerfile: Dockerfile.spark
+    image: fmcg-spark:3.5.1
+    container_name: spark-master
+    hostname: spark-master
+    working_dir: /opt/spark-apps
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master -h spark-master
+    environment:
+      - SPARK_NO_DAEMONIZE=true
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+    volumes:
+      - ./:/opt/spark-apps
+    networks:
+      - spark-network
+
+  spark-worker-1:
+    build:
+      context: .
+      dockerfile: Dockerfile.spark
+    image: fmcg-spark:3.5.1
+    container_name: spark-worker-1
+    working_dir: /opt/spark-apps
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    environment:
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2g
+      - SPARK_NO_DAEMONIZE=true
+    depends_on:
+      - spark-master
+    volumes:
+      - ./:/opt/spark-apps
+    networks:
+      - spark-network
+
+  spark-worker-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.spark
+    image: fmcg-spark:3.5.1
+    container_name: spark-worker-2
+    working_dir: /opt/spark-apps
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    environment:
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2g
+      - SPARK_NO_DAEMONIZE=true
+    depends_on:
+      - spark-master
+    volumes:
+      - ./:/opt/spark-apps
+    networks:
+      - spark-network
+
+  spark-worker-3:
+    build:
+      context: .
+      dockerfile: Dockerfile.spark
+    image: fmcg-spark:3.5.1
+    container_name: spark-worker-3
+    working_dir: /opt/spark-apps
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    environment:
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2g
+      - SPARK_NO_DAEMONIZE=true
+    depends_on:
+      - spark-master
+    volumes:
+      - ./:/opt/spark-apps
+    networks:
+      - spark-network
+
+networks:
+  spark-network:
+    driver: bridge
