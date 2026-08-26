@@ -158,7 +158,7 @@ graph TD
     RAW["📁 <b>Raw FMCG Sales CSV</b><br/><b>5,000,000 Records • 962 MB</b><br/>36 Months Multi-Store Point-of-Sale Data"]:::raw
     BRONZE["🥉 <b>Bronze Parquet Ingestion</b><br/><code>data/bronze/</code> • <b>14 Partitions</b><br/>Schema Validation & Snappy Compression"]:::bronze
     SILVER["🥈 <b>Silver Cleansed Lakehouse</b><br/><code>data/silver/</code> • <b>4,989,807 Retained</b><br/>Deduplicated & Out-of-Bounds Stripped"]:::silver
-    GOLD["🥇 <b>Gold Feature Vectors</b><br/><code>data/gold/</code> • <b>27 ML Features</b><br/>Target Leakage Excluded"]:::gold
+    GOLD["🥇 <b>Gold Feature </b><br/><code>data/gold/</code> • <b>27 ML Features</b><br/>Target Leakage Excluded"]:::gold
     
     subgraph SPLITS ["📊 Multi-Scale 80/20 Train / Test Partitions"]
         TRAIN["<b>Train Partition (80%)</b><br/>798K (1M) • 2.39M (3M) • 3.99M (5M)"]:::split
