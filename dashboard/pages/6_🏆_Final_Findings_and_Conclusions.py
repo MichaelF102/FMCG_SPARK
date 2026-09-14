@@ -28,7 +28,7 @@ inject_custom_css()
 render_sidebar()
 
 st.markdown('<div class="main-header">Final Findings & Strategic Architecture Conclusions</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Synthesis and decision framework comparing Single-Node vs Distributed PySpark execution across 4 ML models and 3 dataset scales</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-header">Synthesis and decision framework comparing Single-Node vs Distributed PySpark execution across 3 ML models and 3 dataset scales</div>', unsafe_allow_html=True)
 
 # --- PRESENTATION-READY SCORECARD ---
 st.markdown("""
@@ -37,23 +37,23 @@ st.markdown("""
     <table style="width: 100%; border-collapse: collapse; font-size: 0.95rem;">
         <tr style="border-bottom: 1px solid #334155;">
             <td style="padding: 10px; font-weight: 600; color: #94A3B8; width: 28%;">Maximum Distributed Speedup:</td>
-            <td style="padding: 10px; color: #10B981; font-weight: bold;">XGBoost (1M) & Random Forest (5M)</td>
-            <td style="padding: 10px;"><span class="speedup-badge-win">10.32x Speedup (1M) / 6.50x Speedup (5M)</span> (70.2s vs 456.1s)</td>
+            <td style="padding: 10px; color: #10B981; font-weight: bold;">Random Forest (5M) & (3M)</td>
+            <td style="padding: 10px;"><span class="speedup-badge-win">2.85x Speedup (5M) / 2.49x Speedup (3M)</span> (126.8s vs 361.4s)</td>
         </tr>
         <tr style="border-bottom: 1px solid #334155;">
             <td style="padding: 10px; font-weight: 600; color: #94A3B8;">Fastest Model Execution:</td>
-            <td style="padding: 10px; color: #38BDF8; font-weight: bold;">CatBoost & XGBoost</td>
-            <td style="padding: 10px;">4.33s (1M Single-Node) • 4.81s (1M Distributed) • 15.64s (5M Distributed)</td>
+            <td style="padding: 10px; color: #38BDF8; font-weight: bold;">Linear Regression (1M)</td>
+            <td style="padding: 10px;">0.46s (1M Single-Node) • 0.71s (1M Distributed) • 2.18s (5M Distributed)</td>
         </tr>
         <tr style="border-bottom: 1px solid #334155;">
             <td style="padding: 10px; font-weight: 600; color: #94A3B8;">Lowest Predictive Error (Best RMSE):</td>
             <td style="padding: 10px; color: #818CF8; font-weight: bold;">XGBoost (5M Rows)</td>
-            <td style="padding: 10px;"><b>RMSE = 13.14</b> | <b>MAE = 9.26</b> | <b>R² = 0.8760</b></td>
+            <td style="padding: 10px;"><b>RMSE = 13.15</b> | <b>MAE = 9.26</b> | <b>R² = 0.8759</b></td>
         </tr>
         <tr style="border-bottom: 1px solid #334155;">
             <td style="padding: 10px; font-weight: 600; color: #94A3B8;">Peak Memory Headroom:</td>
             <td style="padding: 10px; color: #38BDF8; font-weight: bold;">Distributed PySpark</td>
-            <td style="padding: 10px;">Balanced at 73% cluster RAM vs Single-Node hitting <b>90.0% memory ceiling</b></td>
+            <td style="padding: 10px;">Balanced at 67% cluster RAM vs Single-Node hitting <b>86.0% memory ceiling (14.3 GB)</b></td>
         </tr>
         <tr>
             <td style="padding: 10px; font-weight: 600; color: #94A3B8;">Scalability Crossover Point:</td>
@@ -72,8 +72,8 @@ c_f1, c_f2 = st.columns(2)
 with c_f1:
     st.markdown("""
     ##### 1. Computational Performance Findings
-    - **Random Forest**: Demonstrates the clearest distributed advantage. Single-node Scikit-Learn scales quadratically (66.7s at 1M $\\to$ 456.1s at 5M), whereas PySpark MLlib scales near-linearly to 70.2s (**6.50x faster**).
-    - **Gradient Boosting (LightGBM/CatBoost)**: Highly optimized single-node C++ libraries excel for small-to-medium volumes (<1M–2M rows) due to zero IPC overhead, while distributed ensembling reaches parity as volume grows.
+    - **Random Forest**: Demonstrates the clearest distributed advantage. Single-node Scikit-Learn scales steeply (47.7s at 1M $\\to$ 195.3s at 3M $\\to$ 361.4s at 5M), whereas PySpark MLlib scales to 126.8s at 5M (**2.85x faster**).
+    - **Linear Regression & XGBoost**: Fast analytical baselines (Linear Regression) achieve sub-second fitting (0.46s), while distributed XGBoost achieves consistent acceleration across all scales (**1.22x at 1M**, **1.69x at 3M**, **1.56x at 5M**).
     
     ##### 2. Predictive Accuracy Findings
     - **Algorithmic Invariance**: Predictive accuracy is statistically invariant across single-node and distributed frameworks ($R^2 \\approx 0.84 - 0.88$).
@@ -103,7 +103,7 @@ with dm_col1:
         <h4 style="color: #F59E0B; margin-top: 0;">🔹 Prefer Single-Node ML When:</h4>
         <ul style="color: #CBD5E1; font-size: 0.9rem; line-height: 1.6;">
             <li><b>Dataset Size</b>: Volume is under $< 1,000,000 – 2,000,000$ rows and fits comfortably within host RAM.</li>
-            <li><b>Algorithm Choice</b>: Utilizing C++ optimized libraries (<code>LightGBM</code>, <code>CatBoost</code>) where multi-threading provides sub-10s training.</li>
+            <li><b>Algorithm Choice</b>: Utilizing lightweight baselines (<code>Linear Regression</code>) or quick single-node iteration where memory saturation is not an issue.</li>
             <li><b>Infrastructure Simplicity</b>: Minimal DevOps overhead is desired; zero cluster networking, JVM, or serialization complexity.</li>
             <li><b>Rapid Experimentation</b>: Data scientists requiring instant interactive hyperparameter tuning on local development workstations.</li>
         </ul>
@@ -131,8 +131,8 @@ st.subheader("🎓 Master Viva Defense: Top 5 Anticipated Questions & Answers")
 v1, v2 = st.columns(2)
 with v1:
     st.markdown(r"""
-    **Q1: Why is PySpark Random Forest faster than Scikit-Learn at 5M, but LightGBM is faster on Single-Node at 1M?**  
-    *Answer:* Random Forest is embarrassingly parallel across trees; Spark distributes tree subsets across workers. Conversely, LightGBM uses highly optimized OpenMP C++ histogram binning on contiguous memory with zero network/JVM socket overhead, making it faster at smaller scales.
+    **Q1: Why is PySpark Random Forest faster than Scikit-Learn at 5M, whereas Linear Regression is fast on both?**  
+    *Answer:* Random Forest requires constructing hundreds of deep decision trees across millions of samples, creating an embarrassingly parallel workload where PySpark distributes tree subsets across workers. Conversely, Linear Regression solves a closed-form normal equation / gradient descent with minimal computation, completing in seconds on both frameworks.
     
     **Q2: Why did you eliminate `gross_sales` and `net_sales` from feature engineering?**  
     *Answer:* Both variables are mathematically derived from `units_sold` ($gross\_sales = units \times price$). Keeping them would cause 100% target leakage, invalidating the model.

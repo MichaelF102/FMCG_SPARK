@@ -1,11 +1,11 @@
 {
     "pipeline_name": "FMCG Medallion Architecture",
     "source_file": "fmcg_sales_5M_rows.csv",
-    "overall_duration_sec": 109.23,
+    "overall_duration_sec": 107.12,
     "bronze": {
         "records": 5000000,
         "columns": 35,
-        "duration_sec": 13.16,
+        "duration_sec": 9.97,
         "path": "data/bronze"
     },
     "silver": {
@@ -14,7 +14,7 @@
         "duplicates_removed": 230,
         "invalid_removed": 10193,
         "columns": 35,
-        "duration_sec": 25.49,
+        "duration_sec": 26.46,
         "path": "data/silver"
     },
     "gold_scales": {
@@ -63,7 +63,7 @@
                 "effective_price"
             ],
             "target": "units_sold",
-            "duration_sec": 4.65,
+            "duration_sec": 4.38,
             "train_path": "data/gold_1M/train.parquet",
             "test_path": "data/gold_1M/test.parquet"
         },
@@ -112,7 +112,7 @@
                 "effective_price"
             ],
             "target": "units_sold",
-            "duration_sec": 9.9,
+            "duration_sec": 9.71,
             "train_path": "data/gold_3M/train.parquet",
             "test_path": "data/gold_3M/test.parquet"
         },
@@ -161,7 +161,7 @@
                 "effective_price"
             ],
             "target": "units_sold",
-            "duration_sec": 14.33,
+            "duration_sec": 13.69,
             "train_path": "data/gold_5M/train.parquet",
             "test_path": "data/gold_5M/test.parquet"
         }

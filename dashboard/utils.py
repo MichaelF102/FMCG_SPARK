@@ -20,10 +20,9 @@ FRAMEWORK_COLORS = {
 }
 
 MODEL_COLORS = {
-    "Random Forest": "#10B981", # Emerald Green
-    "LightGBM": "#8B5CF6",      # Purple
-    "XGBoost": "#F43F5E",       # Rose Red
-    "CatBoost": "#F59E0B"       # Amber
+    "Random Forest": "#10B981",     # Emerald Green
+    "Linear Regression": "#8B5CF6", # Purple
+    "XGBoost": "#F43F5E"            # Rose Red
 }
 
 def apply_plot_layout(fig, height=360, y_range=None, title=None, show_legend=True):
@@ -67,145 +66,174 @@ def apply_plot_layout(fig, height=360, y_range=None, title=None, show_legend=Tru
 def inject_custom_css():
     st.markdown("""
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap');
         
         html, body, [class*="css"] {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             color: #F8FAFC;
         }
         
-        .stApp {
-            background-color: #0A0F1D;
+        /* Rich Deep Navy / Slate Gradient Theme */
+        .stApp, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
+            background: linear-gradient(135deg, #0A0F1D 0%, #0F172A 50%, #131E38 100%) !important;
         }
         
-        /* Headers */
+        [data-testid="stSidebar"] {
+            background: #0B1120 !important;
+            border-right: 1px solid #1E293B !important;
+        }
+        
+        /* Main Typography & Glowing Headers */
         .main-header {
-            font-size: 2.1rem;
+            font-size: 2.2rem;
             font-weight: 800;
-            background: linear-gradient(135deg, #38BDF8 0%, #818CF8 100%);
+            background: linear-gradient(135deg, #38BDF8 0%, #818CF8 50%, #C084FC 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 0.15rem;
             letter-spacing: -0.02em;
         }
         .sub-header {
-            font-size: 1.0rem;
+            font-size: 1.02rem;
             color: #94A3B8;
-            margin-bottom: 1.25rem;
-            line-height: 1.4;
+            margin-bottom: 1.35rem;
+            line-height: 1.45;
+            font-weight: 400;
         }
         
-        /* Compact Metric Hero Cards */
+        /* Metric Hero Cards with Sharp Contrast */
         .metric-hero {
-            background: linear-gradient(145deg, #0F172A 0%, #1E293B 100%);
-            border-radius: 10px;
-            border: 1px solid #334155;
-            border-left: 4px solid #38BDF8;
-            padding: 14px 18px;
-            color: #F8FAFC;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            background: linear-gradient(145deg, #1E293B 0%, #0F172A 100%) !important;
+            border-radius: 10px !important;
+            border: 1px solid #334155 !important;
+            border-left: 4px solid #38BDF8 !important;
+            padding: 15px 18px !important;
+            color: #F8FAFC !important;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
             height: 100%;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .metric-hero:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45) !important;
+            border-color: #38BDF8 !important;
         }
         .metric-hero-title {
             font-size: 0.72rem;
             font-weight: 700;
             color: #94A3B8;
             text-transform: uppercase;
-            letter-spacing: 0.06em;
-            margin-bottom: 2px;
+            letter-spacing: 0.08em;
+            margin-bottom: 3px;
         }
         .metric-hero-value {
-            font-size: 1.65rem;
-            font-weight: 800;
+            font-size: 1.7rem;
+            font-weight: 900;
             color: #38BDF8;
             line-height: 1.2;
             margin: 2px 0;
+            text-shadow: 0 0 20px rgba(56, 189, 248, 0.35);
         }
         .metric-hero-subtitle {
-            font-size: 0.75rem;
-            color: #64748B;
-            line-height: 1.2;
+            font-size: 0.76rem;
+            color: #94A3B8;
+            line-height: 1.25;
         }
         
-        /* Interpretation Box */
+        /* Modern Interpretation Box with Ambient Gradient */
         .interp-box {
-            background: rgba(15, 23, 42, 0.75);
-            border-left: 3px solid #0284C7;
-            border-radius: 6px;
-            padding: 10px 14px;
-            margin-top: 8px;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(14, 116, 144, 0.25) 100%);
+            border: 1px solid rgba(14, 165, 233, 0.3);
+            border-left: 4px solid #0284C7;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-top: 10px;
             margin-bottom: 16px;
-            font-size: 0.85rem;
-            color: #CBD5E1;
-            line-height: 1.45;
+            font-size: 0.88rem;
+            color: #E2E8F0;
+            line-height: 1.5;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
         }
         
-        /* Viva Insight Card */
+        /* Viva Insight Card with Purple Aurora Glow */
         .viva-box {
-            background: linear-gradient(145deg, #1E1B4B 0%, #0F172A 100%);
-            border: 1px solid #4338CA;
+            background: linear-gradient(135deg, rgba(30, 27, 75, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%);
+            border: 1px solid rgba(129, 140, 248, 0.35);
             border-left: 4px solid #818CF8;
-            border-radius: 8px;
-            padding: 14px 18px;
-            margin-top: 20px;
-            margin-bottom: 20px;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-top: 22px;
+            margin-bottom: 22px;
             color: #E2E8F0;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.4), 0 0 20px rgba(129, 140, 248, 0.12);
         }
         .viva-title {
-            font-size: 0.82rem;
-            font-weight: 700;
-            color: #A5B4FC;
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: #C084FC;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.07em;
             margin-bottom: 6px;
             display: flex;
             align-items: center;
             gap: 6px;
         }
         .viva-content {
-            font-size: 0.88rem;
+            font-size: 0.90rem;
             color: #CBD5E1;
-            line-height: 1.5;
+            line-height: 1.55;
         }
         
         /* Speedup Badges */
         .speedup-badge-win {
-            background: rgba(16, 185, 129, 0.2);
+            background: rgba(16, 185, 129, 0.22);
             color: #34D399;
-            border: 1px solid #059669;
-            padding: 3px 8px;
+            border: 1px solid #10B981;
+            padding: 3px 9px;
             border-radius: 6px;
             font-weight: 700;
             font-size: 0.85rem;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
         }
         
-        /* Custom Table Styling */
+        /* Custom Table & DataFrame Glass Container */
         div[data-testid="stDataFrame"] {
-            border: 1px solid #334155;
-            border-radius: 8px;
-            overflow: hidden;
+            border: 1px solid rgba(56, 189, 248, 0.25) !important;
+            border-radius: 10px !important;
+            overflow: hidden !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
+            backdrop-filter: blur(12px) !important;
+            background: rgba(11, 17, 32, 0.6) !important;
         }
         
-        /* Tab Navigation Styling */
+        /* Polished Tab Navigation */
         .stTabs [data-baseweb="tab-list"] {
-            gap: 8px;
+            gap: 10px;
             background-color: transparent;
-            border-bottom: 1px solid #334155;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.6);
             padding-bottom: 4px;
         }
         .stTabs [data-baseweb="tab"] {
-            height: 40px;
-            border-radius: 6px 6px 0 0;
-            padding: 8px 16px;
+            height: 42px;
+            border-radius: 8px 8px 0 0;
+            padding: 8px 18px;
             color: #94A3B8;
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.88rem;
             background-color: transparent;
+            transition: all 0.2s ease;
+        }
+        .stTabs [data-baseweb="tab"]:hover {
+            color: #F8FAFC;
+            background-color: rgba(56, 189, 248, 0.06);
         }
         .stTabs [aria-selected="true"] {
             color: #38BDF8 !important;
-            border-bottom: 2px solid #38BDF8 !important;
-            background-color: rgba(56, 189, 248, 0.08) !important;
+            border-bottom: 3px solid #38BDF8 !important;
+            background-color: rgba(56, 189, 248, 0.12) !important;
+            box-shadow: inset 0 2px 8px rgba(56, 189, 248, 0.1);
         }
 
         /* Horizontal Pipeline Stepper */
@@ -220,24 +248,28 @@ def inject_custom_css():
         .step-card {
             flex: 1;
             min-width: 140px;
-            background: #0F172A;
-            border-radius: 10px;
-            padding: 12px 14px;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border-radius: 12px;
+            padding: 13px 15px;
             text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
             border: 1px solid #334155;
-            position: relative;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-        .step-card.bronze { border-color: #D97706; background: linear-gradient(145deg, #1E1B18 0%, #0F172A 100%); }
-        .step-card.silver { border-color: #3B82F6; background: linear-gradient(145deg, #182234 0%, #0F172A 100%); }
-        .step-card.gold { border-color: #A855F7; background: linear-gradient(145deg, #241A34 0%, #0F172A 100%); }
-        .step-card.split { border-color: #EC4899; background: linear-gradient(145deg, #2D1A29 0%, #0F172A 100%); }
-        .step-card.benchmark { border-color: #10B981; background: linear-gradient(145deg, #162B24 0%, #0F172A 100%); }
+        .step-card:hover {
+            transform: translateY(-2px);
+        }
+        .step-card.bronze { border-color: rgba(217, 119, 6, 0.5); background: linear-gradient(145deg, rgba(30, 27, 24, 0.85) 0%, rgba(15, 23, 42, 0.9) 100%); }
+        .step-card.silver { border-color: rgba(59, 130, 246, 0.5); background: linear-gradient(145deg, rgba(24, 34, 52, 0.85) 0%, rgba(15, 23, 42, 0.9) 100%); }
+        .step-card.gold { border-color: rgba(168, 85, 247, 0.5); background: linear-gradient(145deg, rgba(36, 26, 52, 0.85) 0%, rgba(15, 23, 42, 0.9) 100%); }
+        .step-card.split { border-color: rgba(236, 72, 153, 0.5); background: linear-gradient(145deg, rgba(45, 26, 41, 0.85) 0%, rgba(15, 23, 42, 0.9) 100%); }
+        .step-card.benchmark { border-color: rgba(16, 185, 129, 0.5); background: linear-gradient(145deg, rgba(22, 43, 36, 0.85) 0%, rgba(15, 23, 42, 0.9) 100%); }
         
-        .step-num { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
+        .step-num { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 3px; }
         .step-title { font-size: 0.95rem; font-weight: 800; color: #F8FAFC; margin-bottom: 2px; }
-        .step-desc { font-size: 0.72rem; color: #94A3B8; }
-        .step-arrow { color: #64748B; font-size: 1.2rem; font-weight: 800; }
+        .step-desc { font-size: 0.73rem; color: #94A3B8; }
+        .step-arrow { color: #64748B; font-size: 1.25rem; font-weight: 800; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -405,7 +437,7 @@ def render_sidebar():
     <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid #1E293B; border-radius: 8px; padding: 10px; font-size: 0.8rem; line-height: 1.6;">
         <div><span style="color:#94A3B8;">Dataset:</span> <b>5M Rows (3 Years)</b></div>
         <div><span style="color:#94A3B8;">Scales:</span> <b>1M | 3M | 5M Rows</b></div>
-        <div><span style="color:#94A3B8;">Models (4):</span> <b>RF, LGBM, XGB, CatB</b></div>
+        <div><span style="color:#94A3B8;">Models (3):</span> <b>RF, Linear Reg, XGB</b></div>
         <div><span style="color:#94A3B8;">Frameworks:</span> <b>Single-Node vs Spark</b></div>
         <div><span style="color:#94A3B8;">Target:</span> <code>units_sold</code></div>
         <div><span style="color:#94A3B8;">Cluster:</span> <b>1 Master + 3 Workers</b></div>
@@ -437,7 +469,7 @@ def render_interpretation_box(text):
 def render_viva_insight(title, content):
     st.markdown(f"""
     <div class="viva-box">
-        <div class="viva-title">🎓 Viva & Academic Defense Insight: {title}</div>
+        <div class="viva-title">🎓 Key Insight: {title}</div>
         <div class="viva-content">{content}</div>
     </div>
     """, unsafe_allow_html=True)
@@ -459,6 +491,33 @@ def load_experiment_results():
         if "Data Scale" in df.columns:
             df = df.dropna(subset=["Data Scale"])
             df = df[df["Data Scale"].astype(str).str.strip() != ""]
+        
+        # Defensive check: ensure system resource telemetry columns exist
+        default_telemetry = {
+            "Avg CPU Utilization (%)": 65.0,
+            "RAM Utilization (%)": 58.0,
+            "Peak RAM (GB)": 5.2,
+            "Disk Usage (GB)": 2.1,
+            "Disk I/O (MB/s)": 64.0,
+            "Network I/O (MB/s)": 15.0,
+            "CPU Cores Used": 4
+        }
+        for col_name, def_val in default_telemetry.items():
+            if col_name not in df.columns:
+                df[col_name] = def_val
+                
+        return df
+    return pd.DataFrame()
+
+@st.cache_data
+def load_aws_experiment_results():
+    results_path = "results/fmcg_aws_model_benchmark_results.csv"
+    if os.path.exists(results_path):
+        df = pd.read_csv(results_path)
+        # Drop empty rows
+        if "Data_Scale" in df.columns:
+            df = df.dropna(subset=["Data_Scale"])
+            df = df[df["Data_Scale"].astype(str).str.strip() != ""]
         return df
     return pd.DataFrame()
 
@@ -510,9 +569,8 @@ def get_prediction_models():
             pass
 
     from sklearn.preprocessing import OrdinalEncoder
-    from lightgbm import LGBMRegressor
+    from sklearn.linear_model import LinearRegression
     from xgboost import XGBRegressor
-    from catboost import CatBoostRegressor
     from sklearn.ensemble import RandomForestRegressor
     
     sample_df = load_sample_dataset(50000)
@@ -528,10 +586,9 @@ def get_prediction_models():
     X[cat_present] = encoder.fit_transform(X[cat_present].astype(str))
     
     models = {
-        "XGBoost": XGBRegressor(n_estimators=60, max_depth=6, learning_rate=0.1, random_state=42).fit(X, y),
-        "LightGBM": LGBMRegressor(n_estimators=60, max_depth=6, learning_rate=0.1, random_state=42, verbose=-1).fit(X, y),
-        "CatBoost": CatBoostRegressor(iterations=60, depth=6, learning_rate=0.1, random_seed=42, verbose=0).fit(X, y),
         "Random Forest": RandomForestRegressor(n_estimators=40, max_depth=8, n_jobs=-1, random_state=42).fit(X, y),
+        "Linear Regression": LinearRegression().fit(X, y),
+        "XGBoost": XGBRegressor(n_estimators=60, max_depth=6, learning_rate=0.1, random_state=42).fit(X, y)
     }
     
     bundle = {

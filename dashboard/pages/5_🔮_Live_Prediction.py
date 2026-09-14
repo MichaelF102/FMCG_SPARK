@@ -141,16 +141,14 @@ else:
         st.markdown("---")
         st.subheader("⚡ Scenario Inference Results & Model Consensus")
         
-        pc1, pc2, pc3, pc4, pc5 = st.columns(5)
+        pc1, pc2, pc3, pc4 = st.columns(4)
         with pc1:
             render_kpi_card("Consensus Demand", f"{avg_units:,.1f}", "Mean Units Sold / Day", "#38BDF8")
         with pc2:
             render_kpi_card("XGBoost Estimate", f"{predictions.get('XGBoost', 0):,.1f}", "Units / Day (R² 0.8760)", "#F43F5E")
         with pc3:
-            render_kpi_card("LightGBM Estimate", f"{predictions.get('LightGBM', 0):,.1f}", "Units / Day (Fastest)", "#8B5CF6")
+            render_kpi_card("Linear Regression", f"{predictions.get('Linear Regression', 0):,.1f}", "Units / Day (Baseline)", "#8B5CF6")
         with pc4:
-            render_kpi_card("CatBoost Estimate", f"{predictions.get('CatBoost', 0):,.1f}", "Units / Day (Categorical)", "#F59E0B")
-        with pc5:
             render_kpi_card("Random Forest", f"{predictions.get('Random Forest', 0):,.1f}", "Units / Day (Ensemble)", "#10B981")
             
         st.markdown("<br>", unsafe_allow_html=True)

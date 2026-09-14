@@ -5,27 +5,16 @@ import argparse
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor, HistGradientBoostingRegressor
+from sklearn.linear_model import LinearRegression
 from sklearn.metrics import root_mean_squared_error, mean_absolute_error, r2_score
 from sklearn.preprocessing import OrdinalEncoder
 
 # Optional high-performance gradient boosting libraries
 try:
-    from lightgbm import LGBMRegressor
-    HAS_LIGHTGBM = True
-except ImportError:
-    HAS_LIGHTGBM = False
-
-try:
     from xgboost import XGBRegressor
     HAS_XGBOOST = True
 except ImportError:
     HAS_XGBOOST = False
-
-try:
-    from catboost import CatBoostRegressor
-    HAS_CATBOOST = True
-except ImportError:
-    HAS_CATBOOST = False
 
 def load_gold_data(train_path="data/gold/train.parquet", test_path="data/gold/test.parquet", sample_frac=None):
     print("\n" + "="*50)
@@ -84,9 +73,16 @@ def append_result(csv_path, row_dict):
     
     if os.path.exists(csv_path):
         df_existing = pd.read_csv(csv_path)
-        # Avoid duplicate model records for same framework/model/scale
+        dedup_keys = ["Framework", "Model", "Data Scale"] if "Data Scale" in df_existing.columns else ["Framework", "Model", "Data Rows"]
+        match = (df_existing["Framework"] == str(row_dict.get("Framework"))) & \
+                (df_existing["Model"] == str(row_dict.get("Model"))) & \
+                (df_existing["Data Scale"] == str(row_dict.get("Data Scale")))
+        if match.any():
+            existing_row = df_existing[match].iloc[0].to_dict()
+            for k, v in existing_row.items():
+                if k not in df_new.columns or pd.isna(df_new.loc[0, k]):
+                    df_new.loc[0, k] = v
         df_combined = pd.concat([df_existing, df_new], ignore_index=True)
-        dedup_keys = ["Framework", "Model", "Data Scale"] if "Data Scale" in df_combined.columns else ["Framework", "Model", "Data Rows"]
         df_combined.drop_duplicates(subset=dedup_keys, keep="last", inplace=True)
         df_combined.to_csv(csv_path, index=False)
     else:
@@ -120,17 +116,12 @@ def train_and_evaluate(train_path=None,
     X_train, y_train, X_test, y_test, feature_cols, prep_time = prepare_features(train_df, test_df)
     
     models = [
-        ("Single-Node", "Random Forest", RandomForestRegressor(n_estimators=50, max_depth=12, n_jobs=-1, random_state=42))
+        ("Single-Node", "Random Forest", RandomForestRegressor(n_estimators=50, max_depth=12, n_jobs=-1, random_state=42)),
+        ("Single-Node", "Linear Regression", LinearRegression())
     ]
-    
-    if HAS_LIGHTGBM:
-        models.append(("Single-Node", "LightGBM", LGBMRegressor(n_estimators=100, max_depth=10, learning_rate=0.1, n_jobs=-1, random_state=42, verbose=-1)))
         
     if HAS_XGBOOST:
         models.append(("Single-Node", "XGBoost", XGBRegressor(n_estimators=100, max_depth=10, learning_rate=0.1, n_jobs=-1, random_state=42, tree_method="hist")))
-        
-    if HAS_CATBOOST:
-        models.append(("Single-Node", "CatBoost", CatBoostRegressor(iterations=100, depth=8, learning_rate=0.1, random_seed=42, verbose=0, thread_count=-1)))
     
     for framework, model_name, model in models:
         print("\n" + "-"*50)

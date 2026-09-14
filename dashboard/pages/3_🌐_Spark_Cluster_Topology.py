@@ -108,7 +108,7 @@ with con_c2:
     st.markdown("""
     ##### 3. Shuffle & Partition Ensembling
     - Distributed tree algorithms (Random Forest) compute local histogram bins per partition and aggregate split boundaries across workers via Netty transport.
-    - Partition-level ensembling for XGBoost/CatBoost enables workers to independently fit gradient trees and average predictions seamlessly across nodes.
+    - Partition-level ensembling for XGBoost enables workers to independently fit gradient trees and average predictions seamlessly across nodes, alongside native Spark MLlib Linear Regression and Random Forest.
     
     ##### 4. Memory Management & Garbage Collection
     - Configured with `spark.executor.memory = 1.5g` and `spark.memory.fraction = 0.8` to preserve Java heap stability during large matrix vectorization.

@@ -58,9 +58,9 @@ def compare_results(results_csv="results/experiment_results.csv", metrics_json="
         print("\nTraining Time by Dataset Scale (seconds):")
         print(pivot_train.to_string())
         
-        # Model Speedups (Single-Node Time / Distributed Time) across all 4 models
+        # Model Speedups (Single-Node Time / Distributed Time) across all 3 models
         print("\nDistributed vs Single-Node Speedups (Single-Node Time / Distributed Time):")
-        for m in ["Random Forest", "XGBoost", "CatBoost", "LightGBM"]:
+        for m in ["Random Forest", "Linear Regression", "XGBoost"]:
             print(f"\n ► {m}:")
             for s in ["1M", "3M", "5M"]:
                 sn_row = df[(df["Model"] == m) & (df["Framework"] == "Single-Node") & (df["Data Scale"] == s)]

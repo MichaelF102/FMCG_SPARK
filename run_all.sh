@@ -41,8 +41,8 @@ sleep 5
 # Ensure results directory has full write permissions for Docker containers
 chmod -R 777 results data 2>/dev/null || true
 
-# Step 4: Run Single-Node ML Benchmark (Scikit-Learn, LightGBM, XGBoost, CatBoost) across 1M, 3M, 5M
-echo -e "\n[Step 4/6] Running Single-Node ML Training (Scikit-Learn, LightGBM, XGBoost, CatBoost) across 1M, 3M, 5M scales..."
+# Step 4: Run Single-Node ML Benchmark (Scikit-Learn, Linear Regression, XGBoost) across 1M, 3M, 5M
+echo -e "\n[Step 4/6] Running Single-Node ML Training (Scikit-Learn, Linear Regression, XGBoost) across 1M, 3M, 5M scales..."
 for scale in 1M 3M 5M; do
     echo "--------------------------------------------------"
     echo ">> Training Single-Node Models on scale: ${scale}"

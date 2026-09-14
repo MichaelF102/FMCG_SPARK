@@ -42,38 +42,50 @@ st.markdown('<div class="sub-header">Empirical benchmark of single-node and dist
 # Top Horizontal Pipeline Stepper (Screenshot Format)
 render_pipeline_stepper()
 
+# Dynamic KPI derivation from results_df
+max_sp_str = "2.85x"
+max_sp_sub = "Random Forest (5M) • 126.8s vs 361.4s"
+best_acc_str = "0.8759"
+best_acc_sub = "R² Score (XGBoost 5M • RMSE 13.15)"
+
+if not results_df.empty:
+    speedups = []
+    for s in ["1M", "3M", "5M"]:
+        for m in ["Random Forest", "Linear Regression", "XGBoost"]:
+            sn = results_df[(results_df["Framework"] == "Single-Node") & (results_df["Model"] == m) & (results_df["Data Scale"] == s)]
+            dist = results_df[(results_df["Framework"] == "Distributed") & (results_df["Model"] == m) & (results_df["Data Scale"] == s)]
+            if not sn.empty and not dist.empty:
+                sn_t = float(sn.iloc[0]["Training Time (s)"])
+                dist_t = float(dist.iloc[0]["Training Time (s)"])
+                sp = sn_t / dist_t if dist_t > 0 else 1.0
+                speedups.append((sp, m, s, sn_t, dist_t))
+    if speedups:
+        best_sp = max(speedups, key=lambda x: x[0])
+        max_sp_str = f"{best_sp[0]:.2f}x"
+        max_sp_sub = f"{best_sp[1]} ({best_sp[2]}) • {best_sp[4]:.1f}s vs {best_sp[3]:.1f}s"
+    
+    if "R2" in results_df.columns:
+        max_r2_row = results_df.loc[results_df["R2"].astype(float).idxmax()]
+        best_acc_str = f"{float(max_r2_row['R2']):.4f}"
+        best_acc_sub = f"R² ({max_r2_row['Model']} {max_r2_row['Data Scale']} • RMSE {float(max_r2_row['RMSE']):.2f})"
+
 # --- 6 HIGH-QUALITY COMPACT KPI CARDS ---
 kpi1, kpi2, kpi3, kpi4, kpi5, kpi6 = st.columns(6)
 with kpi1:
     render_kpi_card("Dataset Scale", "5M Rows", "3 Years FMCG Retail Transactions", "#38BDF8")
 with kpi2:
-    render_kpi_card("Models Tested", "4 Models", "RF, LightGBM, XGBoost, CatBoost", "#818CF8")
+    render_kpi_card("Models Tested", "3 Models", "RF, Linear Reg, XGBoost", "#818CF8")
 with kpi3:
     render_kpi_card("Frameworks", "2 Paradigms", "Single-Node (CPU) vs PySpark Cluster", "#F59E0B")
 with kpi4:
-    render_kpi_card("Max Speedup", "10.32x", "XGBoost (1M) | 6.50x on RF (5M)", "#10B981")
+    render_kpi_card("Max Speedup", max_sp_str, max_sp_sub, "#10B981")
 with kpi5:
-    render_kpi_card("Best Accuracy", "0.8760", "R² Score (XGBoost 5M • RMSE 13.14)", "#38BDF8")
+    render_kpi_card("Best Accuracy", best_acc_str, best_acc_sub, "#38BDF8")
 with kpi6:
     render_kpi_card("Spark Cluster", "3 Workers", "6 Executor Cores • 6 GB Cluster RAM", "#0284C7")
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# --- PROJECT INFORMATION & GROUP MEMBERS ---
-st.markdown("""
-<div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%); border: 1px solid #334155; border-left: 4px solid #818CF8; border-radius: 8px; padding: 14px 20px; margin-bottom: 18px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-        <div>
-            <div style="font-size: 0.72rem; font-weight: 700; color: #818CF8; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px;">
-                📌 Topic Name
-            </div>
-            <div style="font-size: 1.02rem; font-weight: 700; color: #F8FAFC;">
-                Machine Learning Project using PySpark - FMCG Sales Prediction
-            </div>
-        </div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
 
 st.markdown("""
 <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%); border: 1px solid #334155; border-left: 4px solid #818CF8; border-radius: 8px; padding: 14px 20px; margin-bottom: 18px;">
@@ -134,8 +146,9 @@ with nav_c1:
 with nav_c2:
     st.markdown("""
     4. **04 Benchmark & Telemetry**: Access the head-to-head performance comparisons, speedup heatmaps, and CPU/RAM telemetry.
-    5. **05 Sales Prediction**: Run interactive  simulations with model consensus, financial impacts, and elasticity curves.
+    5. **05 Sales Prediction**: Run interactive simulations with model consensus, financial impacts, and elasticity curves.
     6. **06 Findings & Conclusions**: Review the comprehensive academic scorecard and architectural decision matrix.
+    7. **07 AWS Results**: Inspect cloud-scale benchmarks on AWS EC2 across 1M, 3M, 5M, and 10M records.
     """)
 
 render_viva_insight(
@@ -155,7 +168,7 @@ graph TD
     classDef split fill:#831843,stroke:#EC4899,stroke-width:2.5px,color:#FDF2F8;
     classDef model fill:#064E3B,stroke:#10B981,stroke-width:2.5px,color:#ECFDF5;
 
-    RAW["📁 <b>Raw FMCG Sales CSV</b><br/><b>5,000,000 Records • 962 MB</b><br/>36 Months Multi-Store Point-of-Sale Data"]:::raw
+    RAW["📁 <b>Raw FMCG Sales CSV</b><br/><b>5,000,000 Records • 1.9 GB</b><br/>36 Months Multi-Store Point-of-Sale Data"]:::raw
     BRONZE["🥉 <b>Bronze Parquet Ingestion</b><br/><code>data/bronze/</code> • <b>14 Partitions</b><br/>Schema Validation & Snappy Compression"]:::bronze
     SILVER["🥈 <b>Silver Cleansed Lakehouse</b><br/><code>data/silver/</code> • <b>4,989,807 Retained</b><br/>Deduplicated & Out-of-Bounds Stripped"]:::silver
     GOLD["🥇 <b>Gold Feature </b><br/><code>data/gold/</code> • <b>27 ML Features</b><br/>Target Leakage Excluded"]:::gold
@@ -167,9 +180,8 @@ graph TD
     
     subgraph ENGINES ["🏆 Benchmark Machine Learning Engines (Single-Node vs Distributed)"]
         M_RF["🌲 <b>Random Forest</b><br/>Spark MLlib vs Scikit-Learn"]:::model
+        M_LR["📈 <b>Linear Regression</b><br/>Spark MLlib vs Scikit-Learn"]:::model
         M_XGB["🚀 <b>XGBoost</b><br/>Distributed vs Single-Node"]:::model
-        M_LGB["⚡ <b>LightGBM</b><br/>Partition vs Single-Node"]:::model
-        M_CAT["🐱 <b>CatBoost</b><br/>Ordered vs Single-Node"]:::model
     end
 
     RAW -->|"src/pipeline.py (ingest)"| BRONZE
@@ -179,9 +191,8 @@ graph TD
     GOLD -->|"split test"| TEST
     
     TRAIN --> M_RF
+    TRAIN --> M_LR
     TRAIN --> M_XGB
-    TRAIN --> M_LGB
-    TRAIN --> M_CAT
 """
 render_mermaid_diagram(overview_mermaid, height=960)
 

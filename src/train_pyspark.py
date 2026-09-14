@@ -1,6 +1,6 @@
 """
 Distributed Machine Learning Pipeline (PySpark MLlib & Distributed Tree Models)
-Trains Random Forest, LightGBM, CatBoost, and XGBoost across Distributed Spark Partitions (1M, 3M, 5M Rows)
+Trains Random Forest, Linear Regression, and XGBoost across Distributed Spark Partitions (1M, 3M, 5M Rows)
 """
 
 import os
@@ -14,35 +14,27 @@ from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 from pyspark.ml.feature import VectorAssembler, StringIndexer
 from pyspark.ml import Pipeline
-from pyspark.ml.regression import RandomForestRegressor, GBTRegressor
+from pyspark.ml.regression import RandomForestRegressor, LinearRegression, GBTRegressor
 from pyspark.ml.evaluation import RegressionEvaluator
 
 # Optional distributed gradient boosting libraries on Spark workers
-try:
-    import lightgbm as lgb
-    HAS_LIGHTGBM = True
-except ImportError:
-    HAS_LIGHTGBM = False
-
 try:
     import xgboost as xgb
     HAS_XGBOOST = True
 except ImportError:
     HAS_XGBOOST = False
 
-try:
-    import catboost as cb
-    HAS_CATBOOST = True
-except ImportError:
-    HAS_CATBOOST = False
-
 def create_spark_session(master=None):
+    os.environ["PYSPARK_PYTHON"] = sys.executable
+    os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
     builder = SparkSession.builder \
         .appName("FMCG_PySpark_MultiModel_Benchmark") \
         .config("spark.sql.adaptive.enabled", "true") \
         .config("spark.sql.adaptive.coalescePartitions.enabled", "true") \
         .config("spark.driver.memory", "4g") \
-        .config("spark.executor.memory", "2g")
+        .config("spark.executor.memory", "2g") \
+        .config("spark.pyspark.python", sys.executable) \
+        .config("spark.pyspark.driver.python", sys.executable)
         
     if master:
         builder = builder.master(master)
@@ -60,6 +52,7 @@ def append_result(csv_path, row_dict):
     ]
     
     rows = []
+    merged_row = dict(row_dict)
     if os.path.exists(csv_path):
         with open(csv_path, "r", newline="") as f:
             reader = csv.DictReader(f)
@@ -72,10 +65,14 @@ def append_result(csv_path, row_dict):
                 same_framework = (r.get("Framework") == str(row_dict.get("Framework")))
                 same_model = (r.get("Model") == str(row_dict.get("Model")))
                 same_scale = (r.get("Data Scale") == str(row_dict.get("Data Scale")))
-                if not (same_framework and same_model and same_scale):
+                if same_framework and same_model and same_scale:
+                    for k, v in r.items():
+                        if k not in merged_row or merged_row[k] == "":
+                            merged_row[k] = v
+                else:
                     rows.append(r)
     
-    rows.append({k: str(row_dict.get(k, "")) for k in fieldnames})
+    rows.append({k: str(merged_row.get(k, "")) for k in fieldnames})
     
     with open(csv_path, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -185,7 +182,45 @@ def run_single_scale(spark, train_path, test_path, scale="5M", results_csv="resu
         "Partitions": num_partitions
     })
     
-    # Distributed partition training for LightGBM, XGBoost, CatBoost across Spark workers
+    # 2. PySpark MLlib Linear Regression
+    print("\n" + "-"*50)
+    print(f"TRAINING DISTRIBUTED MODEL [{scale}]: Linear Regression")
+    print("-"*50)
+    lr_model = LinearRegression(featuresCol="features", labelCol="units_sold")
+    t0 = time.time()
+    fitted_lr = lr_model.fit(train_prep)
+    lr_train_time = time.time() - t0
+    
+    t0 = time.time()
+    lr_preds = fitted_lr.transform(test_prep)
+    lr_preds.count()
+    lr_pred_time = time.time() - t0
+    
+    rmse_lr = float(eval_rmse.evaluate(lr_preds))
+    mae_lr = float(eval_mae.evaluate(lr_preds))
+    r2_lr = float(eval_r2.evaluate(lr_preds))
+    total_time_lr = prep_time + lr_train_time + lr_pred_time
+    
+    append_result(results_csv, {
+        "Framework": "Distributed",
+        "Model": "Linear Regression",
+        "Data Scale": scale,
+        "Data Rows": total_rows,
+        "Train Rows": train_count,
+        "Test Rows": test_count,
+        "Features": len(feature_cols),
+        "Preprocessing Time (s)": round(prep_time, 2),
+        "Training Time (s)": round(lr_train_time, 2),
+        "Prediction Time (s)": round(lr_pred_time, 2),
+        "Total Time (s)": round(total_time_lr, 2),
+        "RMSE": round(rmse_lr, 4),
+        "MAE": round(mae_lr, 4),
+        "R2": round(r2_lr, 4),
+        "Cluster Nodes": 4 if master else 1,
+        "Partitions": num_partitions
+    })
+    
+    # Distributed partition training for XGBoost across Spark workers
     def train_spark_partition_model(model_name_key):
         print("\n" + "-"*50)
         print(f"TRAINING DISTRIBUTED MODEL [{scale}]: {model_name_key}")
@@ -207,16 +242,8 @@ def run_single_scale(spark, train_path, test_path, scale="5M", results_csv="resu
             X = np.array(X_list, dtype=np.float32)
             y = np.array(y_list, dtype=np.float32)
             
-            if model_name_key == "LightGBM" and HAS_LIGHTGBM:
-                m = lgb.LGBMRegressor(n_estimators=35, max_depth=6, learning_rate=0.1, random_state=42, verbose=-1)
-                m.fit(X, y)
-                return [m]
-            elif model_name_key == "XGBoost" and HAS_XGBOOST:
+            if model_name_key == "XGBoost" and HAS_XGBOOST:
                 m = xgb.XGBRegressor(n_estimators=35, max_depth=6, learning_rate=0.1, random_state=42, tree_method="hist")
-                m.fit(X, y)
-                return [m]
-            elif model_name_key == "CatBoost" and HAS_CATBOOST:
-                m = cb.CatBoostRegressor(iterations=35, depth=6, learning_rate=0.1, random_seed=42, verbose=0)
                 m.fit(X, y)
                 return [m]
             else:
@@ -299,10 +326,8 @@ def run_single_scale(spark, train_path, test_path, scale="5M", results_csv="resu
             "Partitions": num_partitions
         })
         
-    # Run LightGBM, XGBoost, CatBoost
-    train_spark_partition_model("LightGBM")
+    # Run XGBoost
     train_spark_partition_model("XGBoost")
-    train_spark_partition_model("CatBoost")
 
 def main():
     parser = argparse.ArgumentParser(description="PySpark Multi-Scale Distributed ML Benchmark")
