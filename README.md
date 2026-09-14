@@ -167,6 +167,7 @@ FMCG_Spark/
 │       ├── 5_🔮_Live_Prediction.py          # Sales Prediction Simulator & discount elasticity
 │       ├── 6_🏆_Final_Findings_and_Conclusions.py # Academic scorecard & decision matrix
 │       └── 7_AWS_Results.py                 # AWS EC2 Cloud Benchmark (1M, 3M, 5M, 10M), 7 plot tabs
+├── ET_AWS/                               # AWS EC2 cloud benchmark screenshots & execution telemetry
 ├── docker-compose.yml                    # Standalone Spark Cluster (1 Master + 3 Workers)
 ├── Dockerfile.spark                      # Bitnami Spark container specification
 ├── generate_synthetic_5m.py              # Realistic FMCG synthetic data generator
